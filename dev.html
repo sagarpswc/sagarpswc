@@ -1,4 +1,7 @@
-<!DOCTYPE html>
+<iframe
+  style="width: 565px; height: 150px; border: 0; overflow: hidden; border-radius: 10px;"
+  sandbox="allow-scripts allow-same-origin"
+  srcdoc='<!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
@@ -476,6 +479,7 @@
 
       const classNames = ["on-1", "on-2", "on-3", "on-4"];
 
+      // ✅ Infinite loop scroll
       function displayScrollingTextInfinite(text) {
         const textMatrix = getTextMatrix(text + "     "); // extra spacing at end
         let startCol = -COLS;
@@ -523,4 +527,5 @@
       displayScrollingTextInfinite("DEVELOPER");
     </script>
   </body>
-</html>
+</html>'>
+</iframe>
