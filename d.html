@@ -1,0 +1,526 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Git Contributions LED Text</title>
+
+    <style>
+      * {
+        font-family: system-ui, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        color: white;
+        font-size: 12px;
+        box-sizing: border-box;
+      }
+
+      body {
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin:0;
+        background-color: #0e1116;
+        justify-content: center;
+      }
+
+      .git-contributions {
+        width: 550px; /* FIXED: was 510x */
+        height: 120px;
+        margin-top: -15px;
+        padding: 10px 10px;
+        border: solid 1px #3d444d;
+        border-top-left-radius: 10px;
+        border-top-right-radius: 10px;
+      }
+
+      .contribute-calendar {
+        display: flex;
+      }
+
+      .weeks {
+        display: flex;
+        flex-direction: column;
+        justify-content: start;
+        gap: 6px;
+        margin-top: 12px;
+        margin-left: 4px;
+      }
+
+      .weeks p {
+        margin: 0;
+        color: #9198a1;
+      }
+
+      .months {
+        display: flex;
+        width: 90%;
+        height: 22px;
+        gap: 21px;
+        margin-left: 38px;
+      }
+
+      .months p {
+        margin: 0;
+        color: #9198a1;
+      }
+
+      .bottom-scale {
+        display: flex;
+        align-items: center;
+        justify-content: end;
+        gap: 4px;
+        margin-right: 12px;
+        margin-top: 4px;
+      }
+
+      .bottom-scale p {
+        margin: 0;
+        color: #9198a1;
+      }
+
+      .color-box {
+        height: 10px;
+        width: 10px;
+        border-radius: 2px;
+      }
+
+      .legend-1 {
+        background-color: #171c21;
+      }
+      .legend-2 {
+        background-color: #1f432b;
+      }
+      .legend-3 {
+        background-color: #2e6b38;
+      }
+      .legend-4 {
+        background-color: #52a44f;
+      }
+      .legend-5 {
+        background-color: #6cd064;
+      }
+
+      #led-container {
+        padding: 10px;
+      }
+
+      .led-row {
+        display: flex;
+      }
+
+      .led {
+        width: 6px;
+        height: 6px;
+        margin: 1.8px;
+        border-radius: 20%;
+        background-color: #171c21;
+      }
+
+      .led.on-1 {
+        background-color: #1f432b;
+      }
+      .led.on-2 {
+        background-color: #2e6b38;
+      }
+      .led.on-3 {
+        background-color: #52a44f;
+      }
+      .led.on-4 {
+        background-color: #6cd064;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="git-contributions">
+      <div class="months">
+        <p>Jan</p>
+        <p>Feb</p>
+        <p>Mar</p>
+        <p>Apr</p>
+        <p>May</p>
+        <p>Jun</p>
+        <p>Jul</p>
+        <p>Aug</p>
+        <p>Sep</p>
+        <p>Oct</p>
+        <p>Nov</p>
+        <p>Dec</p>
+      </div>
+
+      <div class="contribute-calendar">
+        <div class="weeks">
+          <p>Mon</p>
+          <p>Wed</p>
+          <p>Fri</p>
+        </div>
+
+        <div>
+          <div id="led-container"></div>
+
+          <div class="bottom-scale">
+            <p>Less</p>
+            <div class="color-box legend-1"></div>
+            <div class="color-box legend-2"></div>
+            <div class="color-box legend-3"></div>
+            <div class="color-box legend-4"></div>
+            <div class="color-box legend-5"></div>
+            <p>More</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const container = document.getElementById("led-container");
+      const ROWS = 7;
+      const COLS = 50;
+      const ledMatrix = [];
+
+      // Create LED matrix
+      for (let i = 0; i < ROWS; i++) {
+        const row = document.createElement("div");
+        row.className = "led-row";
+        ledMatrix[i] = [];
+
+        for (let j = 0; j < COLS; j++) {
+          const led = document.createElement("div");
+          led.className = "led";
+          row.appendChild(led);
+          ledMatrix[i][j] = led;
+        }
+
+        container.appendChild(row);
+      }
+
+      // 7x5 Font
+      const font = {
+        A: [
+          [0, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 1, 1, 1, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1]
+        ],
+        B: [
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 1, 1, 1, 0]
+        ],
+        C: [
+          [0, 1, 1, 1, 1],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [0, 1, 1, 1, 1]
+        ],
+        D: [
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 1, 1, 1, 0]
+        ],
+        E: [
+          [1, 1, 1, 1, 1],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1]
+        ],
+        F: [
+          [1, 1, 1, 1, 1],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0]
+        ],
+        G: [
+          [0, 1, 1, 1, 1],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 1, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [0, 1, 1, 1, 0]
+        ],
+        H: [
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 1, 1, 1, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1]
+        ],
+        I: [
+          [1, 1, 1, 1, 1],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [1, 1, 1, 1, 1]
+        ],
+        J: [
+          [0, 0, 0, 1, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [0, 1, 1, 1, 0]
+        ],
+        K: [
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 1, 0],
+          [1, 0, 1, 0, 0],
+          [1, 1, 0, 0, 0],
+          [1, 0, 1, 0, 0],
+          [1, 0, 0, 1, 0],
+          [1, 0, 0, 0, 1]
+        ],
+        L: [
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1]
+        ],
+        M: [
+          [1, 0, 0, 0, 1],
+          [1, 1, 0, 1, 1],
+          [1, 0, 1, 0, 1],
+          [1, 0, 1, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1]
+        ],
+        N: [
+          [1, 0, 0, 0, 1],
+          [1, 1, 0, 0, 1],
+          [1, 0, 1, 0, 1],
+          [1, 0, 1, 0, 1],
+          [1, 0, 0, 1, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1]
+        ],
+        O: [
+          [0, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [0, 1, 1, 1, 0]
+        ],
+        P: [
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0]
+        ],
+        Q: [
+          [0, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 1, 0, 1],
+          [1, 0, 0, 1, 0],
+          [0, 1, 1, 0, 1]
+        ],
+        R: [
+          [1, 1, 1, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 1, 1, 1, 0],
+          [1, 0, 1, 0, 0],
+          [1, 0, 0, 1, 0],
+          [1, 0, 0, 0, 1]
+        ],
+        S: [
+          [0, 1, 1, 1, 1],
+          [1, 0, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [0, 1, 1, 1, 0],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 0, 1],
+          [1, 1, 1, 1, 0]
+        ],
+        T: [
+          [1, 1, 1, 1, 1],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0]
+        ],
+        U: [
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [0, 1, 1, 1, 0]
+        ],
+        V: [
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [0, 1, 0, 1, 0],
+          [0, 0, 1, 0, 0]
+        ],
+        W: [
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [1, 0, 1, 0, 1],
+          [1, 0, 1, 0, 1],
+          [1, 1, 0, 1, 1],
+          [1, 0, 0, 0, 1]
+        ],
+        X: [
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [0, 1, 0, 1, 0],
+          [0, 0, 1, 0, 0],
+          [0, 1, 0, 1, 0],
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1]
+        ],
+        Y: [
+          [1, 0, 0, 0, 1],
+          [1, 0, 0, 0, 1],
+          [0, 1, 0, 1, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0],
+          [0, 0, 1, 0, 0]
+        ],
+        Z: [
+          [1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 1],
+          [0, 0, 0, 1, 0],
+          [0, 0, 1, 0, 0],
+          [0, 1, 0, 0, 0],
+          [1, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1]
+        ],
+        "-": [
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [1, 1, 1, 1, 1],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0]
+        ],
+        " ": [
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0],
+          [0, 0, 0, 0, 0]
+        ],
+        0: [
+          [1, 1, 1, 1, 1],
+          [1, 0, 0, 1, 1],
+          [1, 0, 0, 1, 1],
+          [1, 0, 1, 1, 1],
+          [1, 1, 1, 0, 1],
+          [1, 1, 0, 0, 1],
+          [1, 1, 1, 1, 1]
+        ]
+      };
+
+      function getTextMatrix(text) {
+        let matrix = Array(7)
+          .fill(null)
+          .map(() => []);
+
+        for (let char of text.toUpperCase()) {
+          if (font[char]) {
+            for (let i = 0; i < 7; i++) {
+              matrix[i] = matrix[i].concat(font[char][i]);
+              matrix[i].push(0); // 1 column spacing
+            }
+          }
+        }
+        return matrix;
+      }
+
+      const classNames = ["on-1", "on-2", "on-3", "on-4"];
+
+      function displayScrollingTextInfinite(text) {
+        const textMatrix = getTextMatrix(text + "     "); // extra spacing at end
+        let startCol = -COLS;
+
+        const delay = 40 // speed control
+        let lastUpdate = performance.now();
+
+        function updateDisplay() {
+          const now = performance.now();
+
+          if (now - lastUpdate >= delay) {
+            lastUpdate = now;
+
+            for (let i = 0; i < ROWS; i++) {
+              for (let j = 0; j < COLS; j++) {
+                const textCol = startCol + j;
+
+                // reset
+                ledMatrix[i][j].classList.remove("on-1", "on-2", "on-3", "on-4");
+
+                if (textCol >= 0 && textCol < textMatrix[0].length) {
+                  if (textMatrix[i][textCol] === 1) {
+                    const randomClass =
+                      classNames[Math.floor(Math.random() * classNames.length)];
+                    ledMatrix[i][j].classList.add(randomClass);
+                  }
+                }
+              }
+            }
+
+            startCol++;
+
+            if (startCol > textMatrix[0].length) {
+              startCol = -COLS;
+            }
+          }
+
+          requestAnimationFrame(updateDisplay);
+        }
+
+        updateDisplay();
+      }
+
+      // Start
+      displayScrollingTextInfinite("DEVELOPER");
+    </script>
+  </body>
+</html>
