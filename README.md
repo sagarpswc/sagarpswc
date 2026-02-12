@@ -1,8 +1,7 @@
 ## Hi there 👋
 
-<iframe style="width: 565px; height: 150px; border: 0; overflow: hidden; border-radius: 10px;"
-    sandbox="allow-scripts allow-same-origin" src='./dev.html'>
-</iframe>
+[![Demo](./demo.gif)](https://sagarpswc.github.io/sagarpswc/dev.html)
+
 
 <!--
 **sagarpswc/sagarpswc** is a ✨ _special_ ✨ repository because its `README.md` (this file) appears on your GitHub profile.
